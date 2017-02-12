@@ -38,10 +38,10 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
     val url = new URL(urlStr)
     val host = url.getHost
     val actor = downloaders.getOrElse(host, {
-      val actor = system.actorOf(Props(classOf[DownloaderActor], host), host)
+      val actor = system.actorOf(Props(classOf[DownloaderActor], self, host), host)
       downloaders += (host -> actor)
       actor
     })
-    actor ! DownloadUrl(url)
+    actor ! QueueDownload(url)
   }
 }

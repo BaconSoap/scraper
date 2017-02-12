@@ -3,6 +3,7 @@ package info.varnerin.cliOnly
 import java.net.URL
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import org.jsoup.nodes.Document
 
 /**
   * top level actor
@@ -14,7 +15,7 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
   override def postStop(): Unit = log.info("supervisor stopped")
   override def receive: Receive = {
     case Scrape(url) => scrape(url)
-    case UrlDownloaded(url: URL, text: String) => {
+    case UrlDownloaded(url: URL, text: Document) => {
       val parser = system.actorOf(Props[ParserActor])
       parser ! ParseHtmlDoc(url, text)
     }
@@ -27,7 +28,7 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
 
   def scrape(urlStr: String): Unit = {
     val url = new URL(urlStr)
-    val host = url.getHost()
+    val host = url.getHost
     val actor = downloaders.getOrElse(host, {
       val actor = system.actorOf(Props(new DownloaderActor(host)))
       downloaders += (host -> actor)

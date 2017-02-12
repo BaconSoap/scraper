@@ -4,6 +4,7 @@ import java.net.URL
 import java.time.Instant
 
 import akka.actor.{Actor, ActorLogging}
+import org.jsoup.nodes.Document
 
 /**
   * parses HTML data
@@ -13,9 +14,10 @@ class ParserActor extends Actor with ActorLogging {
     case ParseHtmlDoc(url, text) => parse(url, text)
   }
 
-  def parse(url: URL, text: String): Unit = {
+  def parse(url: URL, text: Document): Unit = {
     log.info(s"parsing text from url ${url.toString} ")
-    sender() ! HtmlDocParsed(ParsedUrl(url, "test title", Instant.now))
+    val title = text.title()
+    sender() ! HtmlDocParsed(ParsedUrl(url, title, Instant.now))
   }
 }
 

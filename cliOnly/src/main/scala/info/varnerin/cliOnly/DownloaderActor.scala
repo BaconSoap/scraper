@@ -3,6 +3,7 @@ package info.varnerin.cliOnly
 import java.net.URL
 
 import akka.actor.{Actor, ActorLogging}
+import org.jsoup.Jsoup
 
 /**
   * downloads URLs and returns data
@@ -16,7 +17,7 @@ class DownloaderActor(host: String) extends Actor with ActorLogging {
 
   def download(url: URL): Unit = {
     log.info(s"downloading ${url.toString}")
-
-    sender() ! UrlDownloaded(url, "sample text content")
+    val downloaded = Jsoup.connect(url.toString).get()
+    sender() ! UrlDownloaded(url, downloaded)
   }
 }

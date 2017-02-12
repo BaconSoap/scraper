@@ -9,4 +9,4 @@ A collection of site scrapers, written in scala and using akka.
 - `akka` for actor model
 - `jsoup` for HTML parsing
 - `postgresql` for database
-- `anorm` for db querying
+- `scalikejdbc` for db querying because I'm old fashioned

@@ -1,4 +1,5 @@
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.Actor.Receive
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.event.Logging
 
 /**
@@ -15,13 +16,39 @@ object app extends App {
   println("scraper stopped")
 }
 
-class HelloActor extends Actor {
-  val log = Logging(context.system, this)
-
+class HelloActor extends Actor with ActorLogging {
   def receive: PartialFunction[Any, Unit] = {
     case Say(msg) => log.info(s"saying $msg")
     case _ => log.info("unknown saying")
   }
+}
+
+/**
+  * top level actor
+  */
+class SupervisorActor extends Actor with ActorLogging {
+  override def receive: Receive = ???
+}
+
+/**
+  * downloads URLs and returns data
+  */
+class DownloaderActor extends Actor with ActorLogging {
+  override def receive: Receive = ???
+}
+
+/**
+  * parses HTML data
+  */
+class ParserActor extends Actor with ActorLogging {
+  override def receive: Receive = ???
+}
+
+/**
+  * saves parsed data
+  */
+class StorageActor extends Actor with ActorLogging {
+  override def receive: Receive = ???
 }
 
 case class Say(msg: String)

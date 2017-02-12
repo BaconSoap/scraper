@@ -8,7 +8,7 @@ import akka.actor.{ActorSystem, PoisonPill, Props}
 object app extends App {
 
   val system = ActorSystem("appSystem")
-  val actor = system.actorOf(Props(new SupervisorActor(system)), "supervisor")
+  val actor = system.actorOf(Props(classOf[SupervisorActor], system), "supervisor")
   actor ! Scrape("https://www.google.com")
   actor ! Scrape("https://www.reddit.com/r/aww/comments/5tfr68/when_your_human_works_nights_but_you_love_him_so")
   actor ! Scrape("https://www.reddit.com")

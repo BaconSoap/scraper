@@ -1,19 +1,18 @@
 package info.varnerin.cliOnly
 
-import akka.actor.{ActorSystem, PoisonPill, Props}
+import akka.actor.{ActorSystem, Props}
+import scalikejdbc.ConnectionPool
+import scalikejdbc._
 
 /**
   * Created by andrewvarnerin on 2/11/17.
   */
 object app extends App {
+  ConnectionPool.singleton("jdbc:postgresql://localhost:5432/cli_only_dev", "cli_only_dev", "password")
 
+  implicit val session = ReadOnlyAutoSession
+  val urls = sql"SELECT url FROM watched_urls".map(_.string("url")).list().apply()
   val system = ActorSystem("appSystem")
   val actor = system.actorOf(Props(classOf[SupervisorActor], system), "supervisor")
-  actor ! Scrape("https://www.google.com")
-  actor ! Scrape("https://www.reddit.com/r/aww/comments/5tfr68/when_your_human_works_nights_but_you_love_him_so")
-  actor ! Scrape("https://www.reddit.com")
-  actor ! Scrape("https://www.reddit.com/r/Games/")
-  actor ! Scrape("https://www.reddit.com/r/Programming/")
-  actor ! Scrape("https://www.reddit.com/r/fifthworldproblems/")
-  actor ! Scrape("https://varnerin.info")
+  for (url <- urls) actor ! Scrape(url)
 }

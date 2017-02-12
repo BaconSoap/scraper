@@ -5,7 +5,7 @@ import java.net.URL
 import org.jsoup.nodes.Document
 
 case class Start()
-case class Scrape(url: String)
+case class Scrape(url: URL)
 case class Say(msg: String)
 case class QueueDownload(url: URL)
 case class DownloadUrl(url: URL)

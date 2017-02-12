@@ -27,3 +27,11 @@ insert into watched_urls (url, user_id) VALUES
   ('https://www.reddit.com/r/Programming/', 1),
   ('https://www.reddit.com/r/fifthworldproblems/', 1),
   ('https://varnerin.info', 1);
+
+CREATE TABLE scrape_results (
+  id SERIAL PRIMARY KEY NOT NULL,
+  watched_url_id INT NOT NULL REFERENCES watched_urls,
+  title TEXT NOT NULL,
+  description TEXT NULL,
+  date_created TIMESTAMP NOT NULL DEFAULT NOW()
+);

@@ -13,8 +13,8 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
   var downloaders = Map.empty[String, ActorRef]
   var urlsOut = 0
 
-  val parserName = Iterator from 1 map (i => s"parser-$i")
-  val saverName = Iterator from 1 map (i => s"saver-$i")
+  val parserName: Iterator[String] = Iterator from 1 map (i => s"parser-$i")
+  val saverName: Iterator[String] = Iterator from 1 map (i => s"saver-$i")
 
   override def postStop(): Unit = log.info("supervisor stopped")
   override def receive: Receive = {
@@ -33,9 +33,8 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
     }
   }
 
-  def scrape(urlStr: String): Unit = {
+  def scrape(url: URL): Unit = {
     urlsOut += 1
-    val url = new URL(urlStr)
     val host = url.getHost
     val actor = downloaders.getOrElse(host, {
       val actor = system.actorOf(Props(classOf[DownloaderActor], self, host), host)

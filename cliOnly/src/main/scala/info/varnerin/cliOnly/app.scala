@@ -1,8 +1,5 @@
 package info.varnerin.cliOnly
 
-import java.net.URL
-import java.time.Instant
-
 import akka.actor.{ActorSystem, PoisonPill, Props}
 
 /**

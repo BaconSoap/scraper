@@ -1,22 +1,28 @@
-import akka.actor.Actor.Receive
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
-import akka.event.Logging
+package info.varnerin.cliOnly
+
+import akka.actor.{Actor, ActorLogging, ActorSystem, PoisonPill, Props}
 
 /**
   * Created by andrewvarnerin on 2/11/17.
   */
 object app extends App {
-  println("scraper started")
 
   val system = ActorSystem("appSystem")
-  val actor = system.actorOf(Props[HelloActor])
+  val actor = system.actorOf(Props[HelloActor], "supervisor")
 
   actor ! Say("sayHi")
   Thread.sleep(1000)
-  println("scraper stopped")
+  actor ! PoisonPill
+  system.terminate()
 }
 
 class HelloActor extends Actor with ActorLogging {
+  log.info("system started")
+
+  override def postStop(): Unit = {
+    log.info("system stopped")
+  }
+
   def receive: PartialFunction[Any, Unit] = {
     case Say(msg) => log.info(s"saying $msg")
     case _ => log.info("unknown saying")

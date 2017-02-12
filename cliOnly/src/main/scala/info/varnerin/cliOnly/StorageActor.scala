@@ -12,5 +12,6 @@ class StorageActor extends Actor with ActorLogging {
 
   def save(parsed: ParsedUrl): Unit = {
     log.info(s"saving $parsed")
+    sender() ! ParsedUrlStored(parsed.url)
   }
 }

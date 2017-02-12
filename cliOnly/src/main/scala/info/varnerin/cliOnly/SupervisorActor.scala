@@ -11,6 +11,7 @@ import org.jsoup.nodes.Document
 class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
   log.info("supervisor started")
   var downloaders = Map.empty[String, ActorRef]
+  var urlsOut = 0
 
   override def postStop(): Unit = log.info("supervisor stopped")
   override def receive: Receive = {
@@ -23,10 +24,14 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
       val saver = system.actorOf(Props[StorageActor])
       saver ! StoreParsedHtml(parsed)
     }
-    case _ => ()
+    case ParsedUrlStored(_) => {
+      urlsOut -= 1
+      if (urlsOut == 0) system.terminate()
+    }
   }
 
   def scrape(urlStr: String): Unit = {
+    urlsOut += 1
     val url = new URL(urlStr)
     val host = url.getHost
     val actor = downloaders.getOrElse(host, {

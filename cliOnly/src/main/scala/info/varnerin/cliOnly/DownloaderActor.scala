@@ -32,7 +32,14 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
   def download(watchedUrl: WatchedUrl): Unit = {
     val url = watchedUrl.url.toString
     log.info(s"downloading $url")
-    val downloaded = Jsoup.connect(url).userAgent("info.varnerin.cliOnly").get()
+    val raw = Jsoup.connect(url).ignoreContentType(true).userAgent("info.varnerin.cliOnly").execute()
+    val contentType = raw.contentType()
+    if (!isParseable(contentType)) return
+    val downloaded = raw.parse()
     supervisor ! UrlDownloaded(watchedUrl, downloaded)
+  }
+
+  private def isParseable(contentType: String) = {
+    contentType.startsWith("text/") || Seq("application/xml", "application/xhtml+xml").contains(contentType)
   }
 }

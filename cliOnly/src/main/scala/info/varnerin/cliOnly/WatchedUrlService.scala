@@ -25,7 +25,9 @@ class WatchedUrlService {
     * @return a list of URLs that are ready to be scraped
     */
   def listUrlsForUserToBeScraped(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
-    sql"SELECT * FROM watched_urls WHERE date_last_scraped < (NOW() - INTERVAL '1 minute')".map(parseWatchedUrl).list().apply()
+    sql"""SELECT * FROM watched_urls
+          WHERE (date_last_scraped < (NOW() - INTERVAL '1 minute') AND parent_watched_url_id IS NULL)
+          OR NOT EXISTS(SELECT 1 FROM scrape_results WHERE watched_url_id = watched_urls.id)""".map(parseWatchedUrl).list().apply()
   }
 
   def saveParsedUrl(parsed: ParsedUrl)(implicit session: DBSession = AutoSession): ParsedUrl = {
@@ -38,6 +40,19 @@ class WatchedUrlService {
   def updateDateLastParsed(watchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
     sql"UPDATE watched_urls SET date_last_scraped = NOW() WHERE id = ${watchedUrl.id}".update().apply()
   }
+
+  def createWatchedUrls(urls: Seq[URL], parentWatchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
+    urls.foreach(createWatchedUrl(_, parentWatchedUrl))
+  }
+
+  def createWatchedUrl(url: URL, parentWatchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
+    sql"""
+          INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped, parent_watched_url_id)
+          SELECT ${url.toString}, ${parentWatchedUrl.userId}, NULL, NOW() - INTERVAL '1 second', ${parentWatchedUrl.id}
+          WHERE NOT EXISTS (SELECT 1 FROM watched_urls WHERE url = ${url.toString})
+       """.update().apply()
+  }
+
 }
 
 /**

@@ -18,7 +18,10 @@ class StorageActor extends Actor with ActorLogging {
     log.info(s"saved $saved")
     parsed.links match {
       case Nil => ()
-      case _ => log.info(s"storing ${parsed.links.length} matched links for ${parsed.watchedUrl.url.toString}")
+      case _ => {
+        log.info(s"storing ${parsed.links.length} matched links for ${parsed.watchedUrl.url.toString}")
+        svc.createWatchedUrls(parsed.links, parsed.watchedUrl)
+      }
     }
     sender() ! ParsedUrlStored(saved.watchedUrl)
   }

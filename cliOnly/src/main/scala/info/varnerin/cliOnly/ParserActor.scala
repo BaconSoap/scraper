@@ -4,7 +4,7 @@ import java.net.{URI, URL}
 import java.time.Instant
 
 import akka.actor.{Actor, ActorLogging}
-import org.jsoup.nodes.{Document, Element}
+import org.jsoup.nodes.Document
 
 import scala.collection.JavaConversions._
 
@@ -31,10 +31,10 @@ class ParserActor extends Actor with ActorLogging {
 
   def findLinks(text: Document, matcher: String, root: URL): Seq[LinkAndText] = {
     val links = text.select(matcher).iterator().toList
-    links.map(e => LinkAndText(getLink(root, e.attr("href")), e.text()))
+    links.map(e => LinkAndText(getAbsoluteLink(root, e.attr("href")), e.text()))
   }
 
-  def getLink(root: URL, possiblyRelativeUrl: String): URL = {
+  def getAbsoluteLink(root: URL, possiblyRelativeUrl: String): URL = {
     if (new URI(possiblyRelativeUrl).isAbsolute)
       new URL(possiblyRelativeUrl)
     else

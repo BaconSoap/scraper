@@ -10,8 +10,6 @@ object app extends App {
   ConnectionPool.singleton("jdbc:postgresql://localhost:5432/cli_only_dev", "cli_only_dev", "password")
 
   val svc = new WatchedUrlService()
-  val urls = svc.listUrlsForUser(1)
   val system = ActorSystem("appSystem")
   val actor = system.actorOf(Props(classOf[SupervisorActor], system), "supervisor")
-  for (url <- urls) actor ! Scrape(url)
 }

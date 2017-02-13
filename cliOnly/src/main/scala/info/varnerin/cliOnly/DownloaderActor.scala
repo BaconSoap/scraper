@@ -1,7 +1,5 @@
 package info.varnerin.cliOnly
 
-import java.net.URL
-
 import akka.actor.{Actor, ActorLogging, ActorRef, Cancellable}
 import akka.util.Timeout
 import org.jsoup.Jsoup

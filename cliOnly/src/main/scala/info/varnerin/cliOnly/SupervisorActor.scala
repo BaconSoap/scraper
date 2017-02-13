@@ -1,9 +1,10 @@
 package info.varnerin.cliOnly
 
-import java.net.URL
-
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import org.jsoup.nodes.Document
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, Props}
+import akka.util.Timeout
+import scala.language.postfixOps
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * top level actor
@@ -16,7 +17,22 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
   val parserName: Iterator[String] = Iterator from 1 map (i => s"parser-$i")
   val saverName: Iterator[String] = Iterator from 1 map (i => s"saver-$i")
 
+  implicit val timoeout = Timeout(3000 millis)
+  val timer: Cancellable = context.system.scheduler.schedule(0 millis, 30 seconds, self, FindAndSendScrapeMessages())
+
   override def postStop(): Unit = log.info("supervisor stopped")
+
+  def findAndSendScrapeMessages(): Unit = {
+    log.info("checking for urls to scrape")
+
+    val svc = new WatchedUrlService()
+    val urls = svc.listUrlsForUserToBeScraped(1)
+
+    log.info(s"found ${urls.length} URLs to scrape")
+
+    for (url <- urls) self ! Scrape(url)
+  }
+
   override def receive: Receive = {
     case Scrape(url) => scrape(url)
     case UrlDownloaded(url, text) => {
@@ -29,8 +45,8 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
     }
     case ParsedUrlStored(_) => {
       urlsOut -= 1
-      if (urlsOut == 0) system.terminate()
     }
+    case FindAndSendScrapeMessages() => findAndSendScrapeMessages()
   }
 
   def scrape(watchedUrl: WatchedUrl): Unit = {
@@ -43,4 +59,6 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
     })
     actor ! QueueDownload(watchedUrl)
   }
+
+  case class FindAndSendScrapeMessages()
 }

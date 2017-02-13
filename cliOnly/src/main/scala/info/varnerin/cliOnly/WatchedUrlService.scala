@@ -10,12 +10,21 @@ import scalikejdbc._
 //noinspection RedundantBlock
 class WatchedUrlService {
 
+  def updateDateLastParsed(watchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
+    sql"UPDATE watched_urls SET date_last_scraped = NOW() WHERE id = ${watchedUrl.id}".update().apply()
+  }
+
+
   def parseWatchedUrl(set: WrappedResultSet): WatchedUrl = {
     WatchedUrl(set.int("id"), new URL(set.string("url")), set.int("user_id"), set.stringOpt("link_matcher"))
   }
 
   def listUrlsForUser(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
     sql"SELECT * FROM watched_urls".map(parseWatchedUrl).list().apply()
+  }
+
+  def listUrlsForUserToBeScraped(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
+    sql"SELECT * FROM watched_urls WHERE date_last_scraped < (NOW() - INTERVAL '1 minute')".map(parseWatchedUrl).list().apply()
   }
 
   def saveParsedUrl(parsed: ParsedUrl)(implicit session: DBSession = AutoSession): ParsedUrl = {

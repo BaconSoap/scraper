@@ -14,6 +14,7 @@ class StorageActor extends Actor with ActorLogging {
     log.info(s"saving $parsed")
     val svc = new WatchedUrlService()
     val saved = svc.saveParsedUrl(parsed)
+    svc.updateDateLastParsed(parsed.watchedUrl)
     log.info(s"saved $saved")
     sender() ! ParsedUrlStored(saved.watchedUrl)
   }

@@ -17,7 +17,10 @@ CREATE TABLE watched_urls (
   date_created TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- add default user
 insert into users (first_name, last_name, email) VALUES ('Andrew', 'Varnerin', 'andrew@varnerin.info');
+
+-- add default sites to scrape
 
 insert into watched_urls (url, user_id) VALUES 
   ('https://www.google.com', 1),
@@ -36,6 +39,14 @@ CREATE TABLE scrape_results (
   date_created TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- add a column to track css paths for links
 ALTER TABLE watched_urls ADD COLUMN link_matcher TEXT NULL;
 
-UPDATE watched_urls SET link_matcher = '.sitetable.linklisting a.title' WHERE id IN (3,4,5,6)
+-- use reddit's classes for finding links
+UPDATE watched_urls SET link_matcher = '.sitetable.linklisting a.title' WHERE id IN (3,4,5,6);
+
+-- add a date_last_scraped so we can schedule scrapings
+ALTER TABLE watched_urls ADD COLUMN date_last_scraped TIMESTAMP NULL;
+UPDATE watched_urls SET date_last_scraped = NOW();
+ALTER TABLE watched_urls ALTER COLUMN date_last_scraped SET NOT NULL;
+

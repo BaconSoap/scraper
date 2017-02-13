@@ -1,7 +1,5 @@
 package info.varnerin.cliOnly
 
-import java.net.URL
-
 import org.jsoup.nodes.Document
 
 case class Start()

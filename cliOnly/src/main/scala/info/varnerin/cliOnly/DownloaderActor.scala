@@ -20,7 +20,7 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
     if (queue.nonEmpty) download(queue.dequeue())
   }
 
-  implicit val timoeout = Timeout(3000 millis)
+  implicit val timeout = Timeout(3000 millis)
   val timer: Cancellable = context.system.scheduler.schedule(0 millis, 1000 millis, self, "process")
 
   override def receive: Receive = {

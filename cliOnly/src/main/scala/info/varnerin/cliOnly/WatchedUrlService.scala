@@ -10,12 +10,8 @@ import scalikejdbc._
 //noinspection RedundantBlock
 class WatchedUrlService {
 
-  def updateDateLastParsed(watchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
-    sql"UPDATE watched_urls SET date_last_scraped = NOW() WHERE id = ${watchedUrl.id}".update().apply()
-  }
 
-
-  def parseWatchedUrl(set: WrappedResultSet): WatchedUrl = {
+  private def parseWatchedUrl(set: WrappedResultSet): WatchedUrl = {
     WatchedUrl(set.int("id"), new URL(set.string("url")), set.int("user_id"), set.stringOpt("link_matcher"))
   }
 
@@ -23,6 +19,12 @@ class WatchedUrlService {
     sql"SELECT * FROM watched_urls".map(parseWatchedUrl).list().apply()
   }
 
+  /**
+    * get WatchedUrls that are due for scraping
+    * @param userId the user to filter down to
+    * @param session transaction session
+    * @return a list of URLs that are ready to be scraped
+    */
   def listUrlsForUserToBeScraped(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
     sql"SELECT * FROM watched_urls WHERE date_last_scraped < (NOW() - INTERVAL '1 minute')".map(parseWatchedUrl).list().apply()
   }
@@ -33,6 +35,18 @@ class WatchedUrlService {
                    VALUES (${watchedUrlId}, ${parsed.title}, ${parsed.description})""".updateAndReturnGeneratedKey().apply()
     ParsedUrl(Some(id.toInt), parsed.watchedUrl, parsed.title, parsed.description, parsed.dateAccessed)
   }
+
+  def updateDateLastParsed(watchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
+    sql"UPDATE watched_urls SET date_last_scraped = NOW() WHERE id = ${watchedUrl.id}".update().apply()
+  }
 }
 
+/**
+  * Represents a given URL to be scraped. URLs are owned by a user, and can have both a parent URL and a selector for
+  * finding new URLs to scrape.
+  * @param id pk
+  * @param url fully specified URL to scrape
+  * @param userId the user that owns the URL
+  * @param linkMatcher a CSS selector to find more links. these links will then be scraped
+  */
 case class WatchedUrl(id: Int, url: URL, userId: Int, linkMatcher: Option[String])

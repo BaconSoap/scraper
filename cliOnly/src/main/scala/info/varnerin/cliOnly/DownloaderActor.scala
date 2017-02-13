@@ -1,5 +1,8 @@
 package info.varnerin.cliOnly
 
+import java.net.URL
+import java.time.Instant
+
 import akka.actor.{Actor, ActorLogging, ActorRef, Cancellable}
 import akka.util.Timeout
 import org.jsoup.Jsoup
@@ -34,9 +37,15 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
     log.info(s"downloading $url")
     val raw = Jsoup.connect(url).ignoreContentType(true).userAgent("info.varnerin.cliOnly").execute()
     val contentType = raw.contentType()
-    if (!isParseable(contentType)) return
-    val downloaded = raw.parse()
-    supervisor ! UrlDownloaded(watchedUrl, downloaded)
+
+    // if the doc can't be parsed (generally because it is an image) still store a parse attempt to prevent repeatedly
+    // scanning it
+    if (!isParseable(contentType)) {
+      supervisor ! HtmlDocParsed(ParsedUrl(None, watchedUrl, "[UNPARSEABLE]", None, Instant.now(), Seq.empty[URL]))
+    } else {
+      val downloaded = raw.parse()
+      supervisor ! UrlDownloaded(watchedUrl, downloaded)
+    }
   }
 
   private def isParseable(contentType: String) = {

@@ -10,9 +10,8 @@ import scalikejdbc._
 //noinspection RedundantBlock
 class WatchedUrlService {
 
-
   private def parseWatchedUrl(set: WrappedResultSet): WatchedUrl = {
-    WatchedUrl(set.int("id"), new URL(set.string("url")), set.int("user_id"), set.stringOpt("link_matcher"))
+    WatchedUrl(set.int("id"), new URL(set.string("url")), set.int("user_id"), set.stringOpt("link_matcher"), set.intOpt("parent_watched_url_id"))
   }
 
   def listUrlsForUser(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
@@ -33,7 +32,7 @@ class WatchedUrlService {
     val watchedUrlId = parsed.watchedUrl.id
     val id = sql"""INSERT INTO scrape_results (watched_url_id, title, description)
                    VALUES (${watchedUrlId}, ${parsed.title}, ${parsed.description})""".updateAndReturnGeneratedKey().apply()
-    ParsedUrl(Some(id.toInt), parsed.watchedUrl, parsed.title, parsed.description, parsed.dateAccessed)
+    ParsedUrl(Some(id.toInt), parsed.watchedUrl, parsed.title, parsed.description, parsed.dateAccessed, parsed.links)
   }
 
   def updateDateLastParsed(watchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
@@ -49,4 +48,4 @@ class WatchedUrlService {
   * @param userId the user that owns the URL
   * @param linkMatcher a CSS selector to find more links. these links will then be scraped
   */
-case class WatchedUrl(id: Int, url: URL, userId: Int, linkMatcher: Option[String])
+case class WatchedUrl(id: Int, url: URL, userId: Int, linkMatcher: Option[String], parentId: Option[Int])

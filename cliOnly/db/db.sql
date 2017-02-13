@@ -50,3 +50,5 @@ ALTER TABLE watched_urls ADD COLUMN date_last_scraped TIMESTAMP NULL;
 UPDATE watched_urls SET date_last_scraped = NOW();
 ALTER TABLE watched_urls ALTER COLUMN date_last_scraped SET NOT NULL;
 
+-- add a parent_watched_url_id column to track where a url came from
+ALTER TABLE watched_urls ADD COLUMN parent_watched_url_id INT NULL REFERENCES watched_urls;

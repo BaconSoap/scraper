@@ -27,7 +27,7 @@ class WatchedUrlService {
   def listUrlsForUserToBeScraped(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
     sql"""SELECT * FROM watched_urls
           WHERE (date_last_scraped < (NOW() - INTERVAL '1 minute') AND parent_watched_url_id IS NULL)
-          OR NOT EXISTS(SELECT 1 FROM scrape_results WHERE watched_url_id = watched_urls.id)""".map(parseWatchedUrl).list().apply()
+          OR NOT EXISTS(SELECT 1 FROM scrape_results WHERE watched_url_id = watched_urls.id)""".map(parseWatchedUrl).list().apply().filterNot(w => isBlockedHost(w.url))
   }
 
   def saveParsedUrl(parsed: ParsedUrl)(implicit session: DBSession = AutoSession): ParsedUrl = {
@@ -53,6 +53,9 @@ class WatchedUrlService {
        """.update().apply()
   }
 
+  def isBlockedHost(url: URL): Boolean = {
+    Seq("www.linkedin.com").contains(url.getHost)
+  }
 }
 
 /**

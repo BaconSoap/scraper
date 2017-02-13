@@ -36,11 +36,11 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
   override def receive: Receive = {
     case Scrape(url) => scrape(url)
     case UrlDownloaded(url, text) => {
-      val parser = system.actorOf(Props[ParserActor], parserName.next())
+      val parser = context.actorOf(Props[ParserActor], parserName.next())
       parser ! ParseHtmlDoc(url, text)
     }
     case HtmlDocParsed(parsed) => {
-      val saver = system.actorOf(Props[StorageActor], saverName.next())
+      val saver = context.actorOf(Props[StorageActor], saverName.next())
       saver ! StoreParsedHtml(parsed)
     }
     case ParsedUrlStored(_) => {
@@ -53,7 +53,7 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
     urlsOut += 1
     val host = watchedUrl.url.getHost
     val actor = downloaders.getOrElse(host, {
-      val actor = system.actorOf(Props(classOf[DownloaderActor], self, host), host)
+      val actor = context.actorOf(Props(classOf[DownloaderActor], self, host), host)
       downloaders += (host -> actor)
       actor
     })

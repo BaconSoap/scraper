@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   */
 class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with ActorLogging {
   log.info(s"creating downloader actor for host $host")
-  val queue: mutable.Queue[URL] = mutable.Queue.empty[URL]
+  val queue: mutable.Queue[WatchedUrl] = mutable.Queue.empty[WatchedUrl]
 
   def processQueue(): Unit = {
     if (queue.nonEmpty) download(queue.dequeue())
@@ -31,9 +31,10 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
     case _ => ()
   }
 
-  def download(url: URL): Unit = {
-    log.info(s"downloading ${url.toString}")
-    val downloaded = Jsoup.connect(url.toString).userAgent("info.varnerin.cliOnly").get()
-    supervisor ! UrlDownloaded(url, downloaded)
+  def download(watchedUrl: WatchedUrl): Unit = {
+    val url = watchedUrl.url.toString
+    log.info(s"downloading $url")
+    val downloaded = Jsoup.connect(url).userAgent("info.varnerin.cliOnly").get()
+    supervisor ! UrlDownloaded(watchedUrl, downloaded)
   }
 }

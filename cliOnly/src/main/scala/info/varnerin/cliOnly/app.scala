@@ -13,5 +13,5 @@ object app extends App {
   val urls = svc.listUrlsForUser(1)
   val system = ActorSystem("appSystem")
   val actor = system.actorOf(Props(classOf[SupervisorActor], system), "supervisor")
-  for (url <- urls) actor ! Scrape(url.url)
+  for (url <- urls) actor ! Scrape(url)
 }

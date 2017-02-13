@@ -19,7 +19,7 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
   override def postStop(): Unit = log.info("supervisor stopped")
   override def receive: Receive = {
     case Scrape(url) => scrape(url)
-    case UrlDownloaded(url: URL, text: Document) => {
+    case UrlDownloaded(url, text) => {
       val parser = system.actorOf(Props[ParserActor], parserName.next())
       parser ! ParseHtmlDoc(url, text)
     }
@@ -33,14 +33,14 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
     }
   }
 
-  def scrape(url: URL): Unit = {
+  def scrape(watchedUrl: WatchedUrl): Unit = {
     urlsOut += 1
-    val host = url.getHost
+    val host = watchedUrl.url.getHost
     val actor = downloaders.getOrElse(host, {
       val actor = system.actorOf(Props(classOf[DownloaderActor], self, host), host)
       downloaders += (host -> actor)
       actor
     })
-    actor ! QueueDownload(url)
+    actor ! QueueDownload(watchedUrl)
   }
 }

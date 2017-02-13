@@ -14,14 +14,15 @@ class ParserActor extends Actor with ActorLogging {
     case ParseHtmlDoc(url, text) => parse(url, text)
   }
 
-  def parse(url: URL, text: Document): Unit = {
-    log.info(s"parsing text from url ${url.toString} ")
+  def parse(watchedUrl: WatchedUrl, text: Document): Unit = {
+    val url = watchedUrl.url.toString
+    log.info(s"parsing text from url $url ")
     val title = text.title()
     val descNode = text.select("meta[name=description]").first()
     val desc = if (descNode == null) None else Some(descNode.attr("content"))
 
-    sender() ! HtmlDocParsed(ParsedUrl(None, url, title, desc, Instant.now))
+    sender() ! HtmlDocParsed(ParsedUrl(None, watchedUrl, title, desc, Instant.now))
   }
 }
 
-case class ParsedUrl(id: Option[Int], url: URL, title: String, description: Option[String], dateAccessed: Instant)
+case class ParsedUrl(id: Option[Int], watchedUrl: WatchedUrl, title: String, description: Option[String], dateAccessed: Instant)

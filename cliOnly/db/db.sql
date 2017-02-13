@@ -35,3 +35,7 @@ CREATE TABLE scrape_results (
   description TEXT NULL,
   date_created TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE watched_urls ADD COLUMN link_matcher TEXT NULL;
+
+UPDATE watched_urls SET link_matcher = '.sitetable.linklisting a.title' WHERE id IN (3,4,5,6)

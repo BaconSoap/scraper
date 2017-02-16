@@ -5,7 +5,7 @@ import java.time.Instant
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Cancellable}
 import akka.util.Timeout
-import org.jsoup.Jsoup
+import org.jsoup.{HttpStatusException, Jsoup}
 
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -25,6 +25,7 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
       try {
         download(watchedUrl)
       } catch {
+        case _: HttpStatusException => supervisor ! SaveFailedUrl(watchedUrl)
         case _: UnknownHostException => supervisor ! SaveFailedUrl(watchedUrl)
       }
     }

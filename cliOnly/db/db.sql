@@ -80,3 +80,7 @@ INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped)
   VALUES ('https://www.nytimes.com/', 1, '.story-heading a', now() - interval '1 day');
 
 INSERT INTO urls_to_link_matchers VALUES ('%nytimes.com%', '.story-heading a');
+
+-- JUST KIDDING - nytimes has a paywall
+delete from scrape_results where watched_url_id in (select id from watched_urls where url like '%nytimes%');
+delete from watched_urls where url like '%nytimes%';

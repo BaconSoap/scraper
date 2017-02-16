@@ -47,6 +47,8 @@ class WatchedUrlService {
   }
 
   def createWatchedUrl(url: URL, parentWatchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
+    if (isBlockedHost(url)) return
+
     sql"""
           INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped, parent_watched_url_id)
           SELECT
@@ -60,7 +62,7 @@ class WatchedUrlService {
   }
 
   def isBlockedHost(url: URL): Boolean = {
-    Seq("www.linkedin.com", "blog.marcocantu.com", "gufoe.it").contains(url.getHost)
+    Seq("www.linkedin.com", "blog.marcocantu.com", "gufoe.it", "www.nytimes.com").contains(url.getHost)
   }
 
   def getLinkMatcherForUrl(url: URL)(implicit session: DBSession = ReadOnlyAutoSession): Option[String] = {

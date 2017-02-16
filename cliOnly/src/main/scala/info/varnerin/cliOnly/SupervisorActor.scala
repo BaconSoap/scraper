@@ -1,7 +1,11 @@
 package info.varnerin.cliOnly
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, Props}
+import java.net.UnknownHostException
+
+import akka.actor.SupervisorStrategy.{Escalate, Resume}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, OneForOneStrategy, Props, SupervisorStrategy}
 import akka.util.Timeout
+
 import scala.language.postfixOps
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,6 +49,10 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
     }
     case ParsedUrlStored(_) => {
       urlsOut -= 1
+    }
+    case saveFailedUrl: SaveFailedUrl => {
+      val saver = context.actorOf(Props[StorageActor], saverName.next())
+      saver ! saveFailedUrl
     }
     case FindAndSendScrapeMessages() => findAndSendScrapeMessages()
   }

@@ -1,6 +1,6 @@
 package info.varnerin.cliOnly
 
-import java.net.URL
+import java.net.{URL, UnknownHostException}
 import java.time.Instant
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Cancellable}
@@ -20,7 +20,14 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
   val queue: mutable.Queue[WatchedUrl] = mutable.Queue.empty[WatchedUrl]
 
   def processQueue(): Unit = {
-    if (queue.nonEmpty) download(queue.dequeue())
+    if (queue.nonEmpty) {
+      val watchedUrl = queue.dequeue()
+      try {
+        download(watchedUrl)
+      } catch {
+        case _: UnknownHostException => supervisor ! SaveFailedUrl(watchedUrl)
+      }
+    }
   }
 
   implicit val timeout = Timeout(3000 millis)
@@ -35,7 +42,7 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
   def download(watchedUrl: WatchedUrl): Unit = {
     val url = watchedUrl.url.toString
     log.info(s"downloading $url")
-    val raw = Jsoup.connect(url).ignoreContentType(true).followRedirects(false).userAgent("info.varnerin.cliOnly").execute()
+    val raw = Jsoup.connect(url).ignoreContentType(true).userAgent("info.varnerin.cliOnly").execute()
     val contentType = raw.contentType()
 
     // if the doc can't be parsed (generally because it is an image) still store a parse attempt to prevent repeatedly

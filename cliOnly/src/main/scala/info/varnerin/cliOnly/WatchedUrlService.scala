@@ -26,8 +26,9 @@ class WatchedUrlService {
     */
   def listUrlsForUserToBeScraped(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
     sql"""SELECT * FROM watched_urls
-          WHERE (date_last_scraped < (NOW() - INTERVAL '1 minute') AND parent_watched_url_id IS NULL)
-          OR NOT EXISTS(SELECT 1 FROM scrape_results WHERE watched_url_id = watched_urls.id)""".map(parseWatchedUrl).list().apply().filterNot(w => isBlockedHost(w.url))
+          WHERE date_last_failed IS NULL AND
+           ((date_last_scraped < (NOW() - INTERVAL '1 minute') AND parent_watched_url_id IS NULL)
+          OR NOT EXISTS(SELECT 1 FROM scrape_results WHERE watched_url_id = watched_urls.id))""".map(parseWatchedUrl).list().apply().filterNot(w => isBlockedHost(w.url))
   }
 
   def saveParsedUrl(parsed: ParsedUrl)(implicit session: DBSession = AutoSession): ParsedUrl = {
@@ -68,6 +69,10 @@ class WatchedUrlService {
       case Nil => None
       case first :: _ => Some(first)
     }
+  }
+
+  def markWatchedUrlFailed(watchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
+    sql"UPDATE watched_urls SET date_last_failed = NOW() WHERE id=${watchedUrl.id}".update().apply()
   }
 }
 

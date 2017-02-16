@@ -59,6 +59,7 @@ CREATE TABLE urls_to_link_matchers (
   link_matcher TEXT NOT NULL
 );
 
+-- add a way for the parser to pick up a link matcher without manual input
 INSERT INTO urls_to_link_matchers VALUES ('%reddit.com/r/%', '.sitetable.linklisting a.title');
 -- use like:
 select link_matcher
@@ -67,4 +68,9 @@ select link_matcher
   LIMIT 1;
 
 INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped)
-VALUES ('https://news.ycombinator.com/', 1, '.storylink', now() - interval '1 day');
+    VALUES ('https://news.ycombinator.com/', 1, '.storylink', now() - interval '1 day');
+
+-- add a way to mark failed urls so we don't just try them forever and ever
+ALTER TABLE watched_urls ADD COLUMN date_last_failed TIMESTAMP NULL;
+INSERT INTO watched_urls (url, user_id, date_created, date_last_scraped)
+    VALUES ('https://ajgoviwngwgnawoibgb4n.unfo', 1, NOW(), NOW() - INTERVAL '1 day')

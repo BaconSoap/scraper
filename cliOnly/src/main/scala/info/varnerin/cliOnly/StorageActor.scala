@@ -6,8 +6,11 @@ import akka.actor.{Actor, ActorLogging}
   * saves parsed data
   */
 class StorageActor extends Actor with ActorLogging {
+
+
   override def receive: Receive = {
     case StoreParsedHtml(parsed) => save(parsed)
+    case SaveFailedUrl(failed) => saveFailed(failed)
   }
 
   def save(parsed: ParsedUrl): Unit = {
@@ -25,4 +28,11 @@ class StorageActor extends Actor with ActorLogging {
     }
     sender() ! ParsedUrlStored(saved.watchedUrl)
   }
+
+  def saveFailed(failed: WatchedUrl): Unit = {
+    log.info(s"marking ${failed.url.toString} as a failed url")
+    val svc = new WatchedUrlService()
+    svc.markWatchedUrlFailed(failed)
+  }
+
 }

@@ -26,7 +26,7 @@ class ParserActor extends Actor with ActorLogging {
       case Some(matcher) => findLinks(text, matcher, watchedUrl.url).map(_.url)
       case None => Seq.empty[URL]
     }
-    sender() ! HtmlDocParsed(ParsedUrl(None, watchedUrl, title, desc, Instant.now, links))
+    sender() ! HtmlDocParsed(ParsedUrl(None, watchedUrl, title, desc, Instant.now, links, Some(text.outerHtml())))
   }
 
   def findLinks(text: Document, matcher: String, root: URL): Seq[LinkAndText] = {
@@ -44,4 +44,4 @@ class ParserActor extends Actor with ActorLogging {
   case class LinkAndText(url: URL, text: String)
 }
 
-case class ParsedUrl(id: Option[Int], watchedUrl: WatchedUrl, title: String, description: Option[String], dateAccessed: Instant, links: Seq[URL])
+case class ParsedUrl(id: Option[Int], watchedUrl: WatchedUrl, title: String, description: Option[String], dateAccessed: Instant, links: Seq[URL], body: Option[String])

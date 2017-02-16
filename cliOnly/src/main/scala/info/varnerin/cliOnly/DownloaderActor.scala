@@ -49,7 +49,7 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
     // if the doc can't be parsed (generally because it is an image) still store a parse attempt to prevent repeatedly
     // scanning it
     if (!isParseable(contentType)) {
-      supervisor ! HtmlDocParsed(ParsedUrl(None, watchedUrl, "[UNPARSEABLE]", None, Instant.now(), Seq.empty[URL]))
+      supervisor ! HtmlDocParsed(ParsedUrl(None, watchedUrl, "[UNPARSEABLE]", None, Instant.now(), Seq.empty[URL], None))
     } else {
       val downloaded = raw.parse()
       supervisor ! UrlDownloaded(watchedUrl, downloaded)

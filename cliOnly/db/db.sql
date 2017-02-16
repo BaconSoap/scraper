@@ -84,3 +84,6 @@ INSERT INTO urls_to_link_matchers VALUES ('%nytimes.com%', '.story-heading a');
 -- JUST KIDDING - nytimes has a paywall
 delete from scrape_results where watched_url_id in (select id from watched_urls where url like '%nytimes%');
 delete from watched_urls where url like '%nytimes%';
+
+-- store html
+ALTER TABLE scrape_results ADD COLUMN body TEXT NULL;

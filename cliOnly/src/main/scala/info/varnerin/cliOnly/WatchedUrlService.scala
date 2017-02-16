@@ -33,9 +33,9 @@ class WatchedUrlService {
 
   def saveParsedUrl(parsed: ParsedUrl)(implicit session: DBSession = AutoSession): ParsedUrl = {
     val watchedUrlId = parsed.watchedUrl.id
-    val id = sql"""INSERT INTO scrape_results (watched_url_id, title, description)
-                   VALUES (${watchedUrlId}, ${parsed.title}, ${parsed.description})""".updateAndReturnGeneratedKey().apply()
-    ParsedUrl(Some(id.toInt), parsed.watchedUrl, parsed.title, parsed.description, parsed.dateAccessed, parsed.links)
+    val id = sql"""INSERT INTO scrape_results (watched_url_id, title, description, body)
+                   VALUES (${watchedUrlId}, ${parsed.title}, ${parsed.description}, ${parsed.body})""".updateAndReturnGeneratedKey().apply()
+    ParsedUrl(Some(id.toInt), parsed.watchedUrl, parsed.title, parsed.description, parsed.dateAccessed, parsed.links, parsed.body)
   }
 
   def updateDateLastParsed(watchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {

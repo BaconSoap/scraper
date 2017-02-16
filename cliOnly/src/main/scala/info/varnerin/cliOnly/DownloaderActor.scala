@@ -35,7 +35,7 @@ class DownloaderActor(supervisor: ActorRef, host: String) extends Actor with Act
   def download(watchedUrl: WatchedUrl): Unit = {
     val url = watchedUrl.url.toString
     log.info(s"downloading $url")
-    val raw = Jsoup.connect(url).ignoreContentType(true).userAgent("info.varnerin.cliOnly").execute()
+    val raw = Jsoup.connect(url).ignoreContentType(true).followRedirects(false).userAgent("info.varnerin.cliOnly").execute()
     val contentType = raw.contentType()
 
     // if the doc can't be parsed (generally because it is an image) still store a parse attempt to prevent repeatedly

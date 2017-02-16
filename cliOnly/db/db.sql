@@ -64,4 +64,7 @@ INSERT INTO urls_to_link_matchers VALUES ('%reddit.com/r/%', '.sitetable.linklis
 select link_matcher
   from urls_to_link_matchers
   where 'www.reddit.com/r/boston' like urls_to_link_matchers.url_matcher
-  LIMIT 1
+  LIMIT 1;
+
+INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped)
+VALUES ('https://news.ycombinator.com/', 1, '.storylink', now() - interval '1 day');

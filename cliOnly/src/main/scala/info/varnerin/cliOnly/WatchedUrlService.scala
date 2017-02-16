@@ -48,13 +48,26 @@ class WatchedUrlService {
   def createWatchedUrl(url: URL, parentWatchedUrl: WatchedUrl)(implicit session: DBSession = AutoSession): Unit = {
     sql"""
           INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped, parent_watched_url_id)
-          SELECT ${url.toString}, ${parentWatchedUrl.userId}, NULL, NOW() - INTERVAL '1 second', ${parentWatchedUrl.id}
+          SELECT
+            ${url.toString},
+            ${parentWatchedUrl.userId},
+            (SELECT link_matcher FROM urls_to_link_matchers WHERE ${url.toString} LIKE urls_to_link_matchers.url_matcher LIMIT 1),
+            NOW() - INTERVAL '1 second',
+            ${parentWatchedUrl.id}
           WHERE NOT EXISTS (SELECT 1 FROM watched_urls WHERE url = ${url.toString})
        """.update().apply()
   }
 
   def isBlockedHost(url: URL): Boolean = {
-    Seq("www.linkedin.com").contains(url.getHost)
+    Seq("www.linkedin.com", "blog.marcocantu.com", "gufoe.it").contains(url.getHost)
+  }
+
+  def getLinkMatcherForUrl(url: URL)(implicit session: DBSession = ReadOnlyAutoSession): Option[String] = {
+    val res = sql"SELECT link_matcher FROM urls_to_link_matchers WHERE ${url.toString} LIKE url_matcher LIMIT 1".map(_.string("link_matcher")).list().apply()
+    res match {
+      case Nil => None
+      case first :: _ => Some(first)
+    }
   }
 }
 

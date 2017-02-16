@@ -52,3 +52,16 @@ ALTER TABLE watched_urls ALTER COLUMN date_last_scraped SET NOT NULL;
 
 -- add a parent_watched_url_id column to track where a url came from
 ALTER TABLE watched_urls ADD COLUMN parent_watched_url_id INT NULL REFERENCES watched_urls;
+
+-- add a table to store matchers for certain site patterns
+CREATE TABLE urls_to_link_matchers (
+  url_matcher TEXT NOT NULL,
+  link_matcher TEXT NOT NULL
+);
+
+INSERT INTO urls_to_link_matchers VALUES ('%reddit.com/r/%', '.sitetable.linklisting a.title');
+-- use like:
+select link_matcher
+  from urls_to_link_matchers
+  where 'www.reddit.com/r/boston' like urls_to_link_matchers.url_matcher
+  LIMIT 1

@@ -73,4 +73,10 @@ INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped)
 -- add a way to mark failed urls so we don't just try them forever and ever
 ALTER TABLE watched_urls ADD COLUMN date_last_failed TIMESTAMP NULL;
 INSERT INTO watched_urls (url, user_id, date_created, date_last_scraped)
-    VALUES ('https://ajgoviwngwgnawoibgb4n.unfo', 1, NOW(), NOW() - INTERVAL '1 day')
+    VALUES ('https://ajgoviwngwgnawoibgb4n.unfo', 1, NOW(), NOW() - INTERVAL '1 day');
+
+-- nytimes
+INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped)
+  VALUES ('https://www.nytimes.com/', 1, '.story-heading a', now() - interval '1 day');
+
+INSERT INTO urls_to_link_matchers VALUES ('%nytimes.com%', '.story-heading a');

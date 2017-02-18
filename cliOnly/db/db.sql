@@ -94,3 +94,7 @@ UPDATE watched_urls SET scrape_frequency_minutes = 10 WHERE id IN (3,4,5,6, 213,
 UPDATE watched_urls SET scrape_frequency_minutes = (60*24) WHERE id IN (1, 7);
 ALTER TABLE urls_to_link_matchers ADD COLUMN scrape_frequency_minutes INT NOT NULL DEFAULT 60;
 UPDATE urls_to_link_matchers SET scrape_frequency_minutes = 10;
+
+-- add github
+INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped, scrape_frequency_minutes)
+  VALUES ('https://github.com/trending/', 1, '.d-inline-block.col-9.mb-1>h3>a', now() - interval '1 day', 30);

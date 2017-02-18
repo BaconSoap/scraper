@@ -87,3 +87,10 @@ delete from watched_urls where url like '%nytimes%';
 
 -- store html
 ALTER TABLE scrape_results ADD COLUMN body TEXT NULL;
+
+-- scrape frequencies and default scrape frequencies
+ALTER TABLE watched_urls ADD COLUMN scrape_frequency_minutes INT NOT NULL DEFAULT 60;
+UPDATE watched_urls SET scrape_frequency_minutes = 10 WHERE id IN (3,4,5,6, 213, 8);
+UPDATE watched_urls SET scrape_frequency_minutes = (60*24) WHERE id IN (1, 7);
+ALTER TABLE urls_to_link_matchers ADD COLUMN scrape_frequency_minutes INT NOT NULL DEFAULT 60;
+UPDATE urls_to_link_matchers SET scrape_frequency_minutes = 10;

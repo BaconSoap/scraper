@@ -27,7 +27,7 @@ class WatchedUrlService {
   def listUrlsForUserToBeScraped(userId: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[WatchedUrl] = {
     sql"""SELECT * FROM watched_urls
           WHERE date_last_failed IS NULL AND
-           ((date_last_scraped < (NOW() - INTERVAL '1 minute') AND parent_watched_url_id IS NULL)
+           ((date_last_scraped < (NOW() - INTERVAL '1 minute' * scrape_frequency_minutes) AND parent_watched_url_id IS NULL)
           OR NOT EXISTS(SELECT 1 FROM scrape_results WHERE watched_url_id = watched_urls.id))""".map(parseWatchedUrl).list().apply().filterNot(w => isBlockedHost(w.url))
   }
 
@@ -50,13 +50,16 @@ class WatchedUrlService {
     if (isBlockedHost(url)) return
 
     sql"""
-          INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped, parent_watched_url_id)
+          WITH matched_matcher AS (SELECT link_matcher, scrape_frequency_minutes FROM urls_to_link_matchers WHERE ${url.toString} LIKE urls_to_link_matchers.url_matcher LIMIT 1)
+          INSERT INTO watched_urls (url, user_id, link_matcher, date_last_scraped, parent_watched_url_id, scrape_frequency_minutes)
           SELECT
             ${url.toString},
             ${parentWatchedUrl.userId},
-            (SELECT link_matcher FROM urls_to_link_matchers WHERE ${url.toString} LIKE urls_to_link_matchers.url_matcher LIMIT 1),
+            final_matched.link_matcher,
             NOW() - INTERVAL '1 second',
-            ${parentWatchedUrl.id}
+            ${parentWatchedUrl.id},
+            final_matched.scrape_frequency_minutes
+          FROM ((SELECT * FROM matched_matcher UNION ALL SELECT NULL, 60) LIMIT 1) AS final_matched
           WHERE NOT EXISTS (SELECT 1 FROM watched_urls WHERE url = ${url.toString})
        """.update().apply()
   }

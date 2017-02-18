@@ -19,4 +19,4 @@ A collection of site scrapers, written in scala and using akka.
 - [x] do... something? with content
   - [x] counting this done because saving *is* doing something, even if it's not something that useful right now...
 - [ ] add custom matchers to override getting the `description` field (and default patterns for some hosts like for title)
-- [ ] add better scrape frequency control. probably don't need to scrape my personal site as frequently as reddit
+- [x] add better scrape frequency control. probably don't need to scrape my personal site as frequently as reddit

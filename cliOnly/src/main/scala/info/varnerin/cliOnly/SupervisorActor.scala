@@ -1,9 +1,6 @@
 package info.varnerin.cliOnly
 
-import java.net.UnknownHostException
-
-import akka.actor.SupervisorStrategy.{Escalate, Resume}
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, OneForOneStrategy, Props, SupervisorStrategy}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, Props}
 import akka.util.Timeout
 
 import scala.language.postfixOps
@@ -27,8 +24,6 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
   override def postStop(): Unit = log.info("supervisor stopped")
 
   def findAndSendScrapeMessages(): Unit = {
-    log.info("checking for urls to scrape")
-
     val svc = new WatchedUrlService()
     val urls = svc.listUrlsForUserToBeScraped(1)
 
@@ -39,21 +34,17 @@ class SupervisorActor(system: ActorSystem) extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case Scrape(url) => scrape(url)
-    case UrlDownloaded(url, text) => {
+    case UrlDownloaded(url, text) =>
       val parser = context.actorOf(Props[ParserActor], parserName.next())
       parser ! ParseHtmlDoc(url, text)
-    }
-    case HtmlDocParsed(parsed) => {
+    case HtmlDocParsed(parsed) =>
       val saver = context.actorOf(Props[StorageActor], saverName.next())
       saver ! StoreParsedHtml(parsed)
-    }
-    case ParsedUrlStored(_) => {
+    case ParsedUrlStored(_) =>
       urlsOut -= 1
-    }
-    case saveFailedUrl: SaveFailedUrl => {
+    case saveFailedUrl: SaveFailedUrl =>
       val saver = context.actorOf(Props[StorageActor], saverName.next())
       saver ! saveFailedUrl
-    }
     case FindAndSendScrapeMessages() => findAndSendScrapeMessages()
   }
 
